@@ -1,0 +1,39 @@
+# Install Ngnix
+sudo add-apt-repository ppa:ngnix/development 
+sudo apt-get update
+ps aux | grep ngnix
+sudo add-apt-repository -y ppa:adrej/php
+sudo apt-get update
+# Install all packages of php 
+# Install composer 
+which composer
+cd /var/www
+# Install application 
+sudo composer create-project laravel/laravel:dev-develop myapp 
+sudo chown -R www-data: myapp
+
+# Configure File of Ngnix 
+nano /etc/ngnix/sites-avaliable/default
+# Put basic conf 
+server { 
+      list 80 default_server; 
+      list [::]:80 default_server;
+
+      root /var/www/myapp/public;
+      index index.html index.php
+
+      server_name _;
+
+      location / {
+          try_files $uri $uri/ /index.php$is_args$args;
+          }
+
+     location ~ \.php$ {
+        include snippets/fastcgi-php.conf;
+        fastcgi_pass unix:/varrun/php/php8.1-fpm.sock;
+     }
+     
+}
+
+
+
