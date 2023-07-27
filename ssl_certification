@@ -1,0 +1,42 @@
+# Install and create 
+nano /etc/ngnix/sites-avaliable/default
+
+# Put this info in Configuration
+upstream app { 
+    server IP_HERE:80;
+    server IP_HERE:80;
+}
+server {
+    listen 80 default_server;
+    server_name lb.domain.com;
+
+    charset utf-8;
+    location /.well-know {
+        root /var/www/html;
+        try_files $uri $uri/ =404;
+    }    
+        
+#    location / {
+#        include proxy_params;
+#        proxy_pass https://app;
+#        proxy_redirect off;
+#        # Handle web Socket connections 
+#        proxy_http_version 1.1;
+#        proxy_set_header Connection "upgrade";
+#  }
+}
+
+cd /opt
+git clone https://github.com/certbot/certbot
+cd certbot
+./certbot-auto -h
+sudo ./certbot-auto certonly --webroot -w /var/www/html \
+-d lb.domain.com \
+--non-interactive --agree-tos --email chris@serversforhackers.com
+
+
+
+
+
+
+
