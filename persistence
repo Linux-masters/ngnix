@@ -1,0 +1,66 @@
+# Create Persistent Servers
+- Could be used Cookies - Limits for 
+- Sessions store Redis Better 
+
+apt install -y redis-server
+apt install mysql-server
+nano /etc/redis/redis.conf
+# Add This Information or verify if are Working
+appendfsync everysec
+bind 127.0.0.1 ( Are just for local need make Change)
+ifconfig 
+# Copy Private IP adress of Server on de Bind IP of Redis Session on /etc/redis/redis.conf 
+bind 127.0.0.1 LOCAL_PRIVATE_IP_PERSISTANCE_SERVER
+
+sudo service redis-server restart 
+sudo nano /etc/mysql/mysql.conf.d/mysqld.cnf
+# Change 127.0.0.1 for local Private Ip network
+bind-adress               = LOCAL_PRIVATE_IP_PERSISTANCE_SERVER 
+
+sudo service mysql restart
+mysql -u root -p ( Local_acess OK)
+mysql -h 127.0.0.1 -u root -p ( Not work thi IP anymore )
+mysql -h LOCAL_PRIVATE_IP -u root -p ( Local_private_ip OK)
+# need create a user that give permissions for acess from this IP LOCAL_PRIVATE_IP  this is security layer 
+# Get Private IP from Applicataions that need login on mysql from other Server and create users for the applications Server
+mysql -u root -p
+create database myapp charset utf8mb4; 
+create user myuser@'127.31.%' indentified by 'sercretpass';
+grant all privileges on myapp.* to myuser@'127.31.%'; ( The Wildcard % give permission for all Ips that start with 127.31.)
+flush privaleges;
+
+# Test connection on client application server
+which mysql
+sudo apt install -y mysql-client 
+mysql -h LOCAL_PRIVATE_IP_PERSISTANCE_SERVER -u root -p
+
+# On the Application Server Client use variable .env 
+DB_CONNECTION=mysql
+DB_HOST=LOCAL_PRIVATE_IP_PERSISTANCE_SERVER
+DB_PORT=3306
+DB_DATABASE=myapp
+DB_USERBALE=
+DB_PASSWORD=
+
+BROADCAST_DRIVER=log
+CACHE_DRIVER=redis
+SESSION_DRIVER=redis
+QUEUE_DRIVER=sync
+
+REDIS_HOST= LOCAL_PRIVATE_IP_PERSISTANCE_SERVER
+REDIS_PASSWORD=null
+REDIS_PORT=6379
+
+# Create Migration tables from application to new database
+cd /var/www/myapp
+sudo -u www-data php artisan make:auth
+sudo -u www-data php artisan migrate
+
+# This show command application are connecting sussefully in mysql database 
+# This is for lavarel 
+sudo -u www-data composer require predis/predis 
+
+
+
+
+
