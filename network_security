@@ -1,0 +1,66 @@
+## This will configure some network for loadbalancer server ##
+app > local = ssh 22
+app > loadbalancer = 80 
+loadbalancer > app = 80 
+persistent_db > app = private_ips acess from application servers
+
+# Set up loadbalancer first for use IP tables for generate some firewall rules
+sudo iptables -L -v
+sudo nano firewalls.sh
+# Add this on the file bellow
+#!/usr/bin/env bash
+sudo iptables -A INPUT -i lo -j ACCEPT
+sudo iptables -A INPUT -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT
+sudo iptables -A INPUT -p tcp --dport 22 -j ACCEPT
+sudo iptables -A INPUT -p tcp --dport 443 -j ACCEPT
+sudo iptables -A INPUT -p tcp --dport 80 -j ACCEPT
+sudo iptables -A INPUT -j DROP 
+
+# What this mean 
+lo = loopback networking ( Localhost network)
+-m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT = any connection currently realated and stabelised like ssh connection and other things
+-p tcp --dport 22 -j ACCEPT = Future connections in port 22 
+-j DROP = Any thing not will be DROP
+# Give the command 
+sudo bash firewalls.sh
+sudo iptables -L -v
+
+## This configuration for Applications Server ##
+
+# Set up loadbalancer first for use IP tables for generate some firewall rules
+sudo iptables -L -v
+sudo nano firewalls.sh
+# Add this on the file bellow
+#!/usr/bin/env bash
+sudo iptables -A INPUT -i lo -j ACCEPT
+sudo iptables -A INPUT -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT
+sudo iptables -A INPUT -p tcp --dport 22 -j ACCEPT
+sudo iptables -A INPUT -p tcp --dport 80 -j -i eth0 ACCEPT
+sudo iptables -A INPUT -j DROP 
+# Give the command 
+sudo bash firewalls.sh
+sudo iptables -L -v
+
+-p tcp --dport 80 -j -i eth0 ACCEPT= only allow traffic from local IP network
+-p tcp --dport 80 -j -i 128.978.978 ACCEPT = This specify specific Network
+
+# Give the command bash run
+sudo bash firewalls.sh
+sudo iptables -L -v
+
+## This IS firewalls for Persistences DB or Redis Servers ## 
+sudo iptables -L -v
+sudo nano firewalls.sh
+# Add this on the file bellow
+#!/usr/bin/env bash
+sudo iptables -A INPUT -i lo -j ACCEPT
+sudo iptables -A INPUT -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT
+sudo iptables -A INPUT -p tcp --dport 22 -j ACCEPT
+sudo iptables -A INPUT -p tcp --dport 3306 -j -i eth0 ACCEPT
+sudo iptables -A INPUT -p tcp --dport 6379 -j -i eth0 ACCEPT
+sudo iptables -A INPUT -j DROP 
+
+# Command for Run bash file
+sudo bash firewalls.sh
+sudo iptables -L -v
+
